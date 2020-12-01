@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/pitip/code/pierrevermeulen/TaxiFareModel/mlruns/1/1befd2baa6d74ab99398f481e10792c4/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: 1befd2baa6d74ab99398f481e10792c4
+run_uuid: 1befd2baa6d74ab99398f481e10792c4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1606831196445
+status: 1
+tags: []
+user_id: unknown
