@@ -1,6 +1,6 @@
 import pandas as pd
-from TaxiFareModel.utils import simple_time_tracker
-
+import numpy as np
+from TaxiFareModel.utils import simple_time_tracker, haversine_vectorized, minkowski_distance
 ##AWS_BUCKET_PATH = "s3://wagon-public-datasets/taxi-fare-train.csv"
 
 DIST_ARGS = dict(start_lat="pickup_latitude",
@@ -34,5 +34,6 @@ def clean_df(df, test=False):
     df = df[df["dropoff_longitude"].between(left=-74, right=-72.9)]
     return df
 
+    return df
 if __name__ == '__main__':
     df = get_data()

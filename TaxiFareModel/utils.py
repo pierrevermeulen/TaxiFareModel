@@ -1,7 +1,7 @@
 import time
 
 import numpy as np
-
+import pandas as pd
 
 def haversine_vectorized(df,
                          start_lat="pickup_latitude",
