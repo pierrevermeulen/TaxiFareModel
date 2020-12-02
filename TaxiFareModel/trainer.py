@@ -1,4 +1,6 @@
 import time
+import datetime
+import os
 import warnings
 import pandas as pd
 import numpy as np
@@ -7,6 +9,7 @@ import mlflow
 from mlflow.tracking import MlflowClient
 import joblib
 import json
+from google.cloud import storage
 
 from TaxiFareModel.data import get_data, clean_df, DIST_ARGS
 from TaxiFareModel.utils import compute_rmse, simple_time_tracker, \
@@ -24,10 +27,48 @@ from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from xgboost import XGBRegressor
 
 
+### GCP configuration - - - - - - - - - - - - - - - - - - -
+
+# /!\ you should fill these according to your account
+
+### GCP Project - - - - - - - - - - - - - - - - - - - - - -
+
+# not required here
+
+### GCP Storage - - - - - - - - - - - - - - - - - - - - - -
+
+BUCKET_NAME = 'wagon-bootcamp-1-297409'
+
+##### Data  - - - - - - - - - - - - - - - - - - - - - - - -
+
+# train data file location
+# /!\ here you need to decide if you are going to train using the provided and uploaded data/train_1k.csv sample file
+# or if you want to use the full dataset (you need need to upload it first of course)
+BUCKET_TRAIN_DATA_PATH = 'data/train_1k.csv'
+
+##### Training  - - - - - - - - - - - - - - - - - - - - - -
+
+# not required here
+
+##### Model - - - - - - - - - - - - - - - - - - - - - - - -
+
+# model folder name (will contain the folders for all trained model versions)
+MODEL_NAME = 'taxifare'
+
+# model version folder name (where the trained model.joblib file will be stored)
+MODEL_VERSION = 'v2'
+
+### GCP AI Platform - - - - - - - - - - - - - - - - - - - -
+
+# not required here
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 MLFLOW_URI = "https://mlflow.lewagon.co/"
 myname = "Pierre"
-EXPERIMENT_NAME = "taxifare_PV"
+EXPERIMENT_NAME = "taxifare_PV_GCP"
 
 class Trainer(object):
 
@@ -132,8 +173,19 @@ class Trainer(object):
 
     def save_model(self):
         """Save the model into a .joblib format"""
-        joblib.dump(self.pipeline, \
-            f"Models/{self.estimator}_Model.joblib")
+
+        storage_name= f"{MODEL_NAME}_{MODEL_VERSION}_{self.estimator}.joblib"
+        print(f"saved {storage_name} locally")
+
+        joblib.dump(self.pipeline, storage_name)
+
+        # Implement here
+        storage_location = BUCKET_NAME
+        storage_client = storage.Client()
+        bucket = storage_client.get_bucket(storage_location)
+        blob = bucket.blob(f"models/{storage_name}")
+        blob.upload_from_filename(storage_name)
+        print(f"saved {storage_name} on GS")
 
     @memoized_property
     def mlflow_client(self):
@@ -202,9 +254,20 @@ class Trainer(object):
 
 if __name__=="__main__":
 
+
+    '''
+    Load data
+    '''
+    print("Load data")
+    df = get_data(nrows=1000)
+    df = clean_df(df)
+
+    X = df.drop("fare_amount", axis =1)
+    y = df["fare_amount"]
+
     param_set = [
             dict(
-                nrows=100000,
+                nrows=1000,
                 estimator="Linear",
                 mlflow=False,
                 distance_type="manhattan",
@@ -212,7 +275,7 @@ if __name__=="__main__":
                 experiment_name="TaxiFareModel"
             ),
             dict(
-                nrows=100000,
+                nrows=1000,
                 estimator="Linear",
                 mlflow=False,
                 distance_type="haversine",
@@ -220,7 +283,7 @@ if __name__=="__main__":
                 experiment_name="TaxiFareModel"
             ),
             dict(
-                nrows=100000,
+                nrows=1000,
                 estimator="RandomForest",
                 mlflow=False,
                 distance_type="manhattan",
@@ -228,7 +291,7 @@ if __name__=="__main__":
                 experiment_name="TaxiFareModel"
             ),
             dict(
-                nrows=100000,
+                nrows=1000,
                 estimator="RandomForest",
                 mlflow=False,
                 distance_type="haversine",
@@ -236,7 +299,7 @@ if __name__=="__main__":
                 experiment_name="TaxiFareModel"
             ),
             dict(
-                nrows=100000,
+                nrows=1000,
                 estimator="xgboost",
                 mlflow=False,
                 distance_type="haversine",
@@ -247,31 +310,18 @@ if __name__=="__main__":
 
     for params in param_set :
 
-        '''
-        INPUT PARAMS :
-        '''
+        '''INPUT PARAMS :'''
         print(json.dumps(params, indent = 2))
 
-        '''
-        Load data
-        '''
-        print("Load data")
-        df = get_data()
-        df = clean_df(df)
-
-        X = df.drop("fare_amount", axis =1)
-        y = df["fare_amount"]
-
-        '''
-        Train
-        '''
+        '''Train'''
         print("Train")
         trainer = Trainer(X, y, **params)
         trainer.train()
 
-        '''
-        Evaluate
-        '''
+        '''Evaluate'''
         print("Evaluate")
         trainer.evaluate()
 
+        '''Save'''
+        print("Save")
+        trainer.save_model()

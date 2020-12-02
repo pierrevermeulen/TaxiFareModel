@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from TaxiFareModel.utils import simple_time_tracker, haversine_vectorized, minkowski_distance
+from google.cloud import storage
 ##AWS_BUCKET_PATH = "s3://wagon-public-datasets/taxi-fare-train.csv"
 
 DIST_ARGS = dict(start_lat="pickup_latitude",
@@ -8,17 +9,22 @@ DIST_ARGS = dict(start_lat="pickup_latitude",
                  end_lat="dropoff_latitude",
                  end_lon="dropoff_longitude")
 
+BUCKET_NAME = 'wagon-bootcamp-1-297409'
+BUCKET_TRAIN_DATA_PATH = 'data/train_1k.csv'
 
 @simple_time_tracker
 def get_data(nrows=10_000):
     """method to get the training data (or a portion of it) from google cloud bucket"""
     #df = pd.read_csv(AWS_BUCKET_PATH, nrows=nrows)
-    if nrows<=10000:
-        df = pd.read_csv('~/code/pierrevermeulen/TaxiFareModel/raw_data/train_10k.csv', nrows=nrows)
-    else:
-        df = pd.read_csv('~/code/pierrevermeulen/TaxiFareModel/raw_data/train.csv', nrows=nrows)
-    return df
+    # if nrows<=10000:
+    #     df = pd.read_csv('~/code/pierrevermeulen/TaxiFareModel/raw_data/train_10k.csv', nrows=nrows)
+    # else:
+    #     df = pd.read_csv('~/code/pierrevermeulen/TaxiFareModel/raw_data/train.csv', nrows=nrows)
+    # return df
 
+    client = storage.Client()
+    df = pd.read_csv("gs://{}/{}".format(BUCKET_NAME, BUCKET_TRAIN_DATA_PATH), nrows=nrows)
+    return df
 
 def clean_df(df, test=False):
     df = df.dropna(how='any', axis='rows')
