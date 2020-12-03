@@ -111,7 +111,8 @@ gcp_submit_training:
 		--python-version=${PYTHON_VERSION} \
 		--runtime-version=${RUNTIME_VERSION} \
 		--region ${REGION} \
-		--stream-logs
+		--scale-tier CUSTOM \
+		--master-machine-type ${MACHINE_TYPE}
 
 clean:
 	@rm -f */version.txt
@@ -119,3 +120,7 @@ clean:
 	@rm -fr */__pycache__ __pycache__
 	@rm -fr build dist *.dist-info *.egg-info
 	@rm -fr */*.pyc
+	@rm model.joblib
+
+run_api:
+	uvicorn api.fast:app --reload  # load web server with code autoreload

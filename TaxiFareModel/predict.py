@@ -4,7 +4,7 @@ from math import sqrt
 import joblib
 import pandas as pd
 #from TaxiFareModel.params import MODEL_NAME
-from google.cloud import storage
+#from google.cloud import storage
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 BUCKET_NAME = "wagon-bootcamp-1-297409"
@@ -22,16 +22,17 @@ def get_test_data():
 
 
 def download_model(bucket=BUCKET_NAME, rm=True):
-    client = storage.Client().bucket(bucket)
+    # client = storage.Client().bucket(bucket)
 
-    storage_location = 'models/{}'.format(MODEL_NAME)
-    print(storage_location)
-    blob = client.blob(storage_location)
-    blob.download_to_filename('model.joblib')
-    print(f"=> pipeline downloaded from storage")
-    model = joblib.load('model.joblib')
-    if rm:
-        os.remove('model.joblib')
+    # storage_location = 'models/{}'.format(MODEL_NAME)
+    # print(storage_location)
+    # blob = client.blob(storage_location)
+    # blob.download_to_filename('model.joblib')
+    # print(f"=> pipeline downloaded from storage")
+    # model = joblib.load('model.joblib')
+    # if rm:
+    #     os.remove('model.joblib')
+    model = joblib.load('taxifare_v2_Linear.joblib')
     return model
 
 

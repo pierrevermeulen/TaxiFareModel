@@ -3,7 +3,10 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 import pygeohash as gh
 from TaxiFareModel.utils import haversine_vectorized, minkowski_distance
-from TaxiFareModel.data import DIST_ARGS
+DIST_ARGS = dict(start_lat="pickup_latitude",
+                 start_lon="pickup_longitude",
+                 end_lat="dropoff_latitude",
+                 end_lon="dropoff_longitude")
 
 # Implement DistanceTransformer and TimeFeaturesEncoder
 
